@@ -1,0 +1,37 @@
+import requests
+import json
+import re
+headers={
+    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36 Edg/91.0.864.41'
+}
+url='https://kyfw.12306.cn/otn/resources/js/framework/station_name.js'
+response=requests.get(url=url,headers=headers)
+a=response.text
+l=a.split('@')
+l1={}
+l2={}
+for i in range(1,len(l)):
+    s =re.findall(r"[|](.*|[A-Z]?)[|]",l[i])
+    s1=s[0].split('|')
+    l1[s1[0].replace(' ','')]=s1[1]
+    l2[s1[1]]=s1[0].replace(' ','')
+print('注意：最多可查询未来14日内的车次信息。')
+time=input('请输入出发日期：（例如：2022-11-18）')
+fromcity=input('请输入出发站点：')
+tocity=input('请输入目的站点：')
+fromcity=l1[fromcity]
+tocity=l1[tocity]
+print(f'出发站{l2[fromcity]},抵达站{l2[tocity]},时间{time}')
+hand={
+'Cookie':f'_uab_collina=162260308402882393240191; JSESSIONID=A192852AEC13A9DEACE9911E49B4EB36; route=6f50b51faa11b987e576cdb'301e545c4; BIGipServerotn=435159562.50210.0000; _jc_save_wfdc_flag=dc; BIGipServerpool_passport=216269322.50215.0000; RAIL_EXPIRATION=1623446044363; RAIL_DEVICEID=hO8LICSFIb2G-tCxEn6O6scXNZjc3rzN-lPYlI7UjdxWbfwvLOfw9XKkxeWTg_nF_R9CofOm_ldRAOUFBNsOwzmKkpMWNgMvA67_V0-xfQ_F455S3dTPxr4boEBXEOIDdKcCGZhqvx4FX_Gno_j1BDFuUQfEnjDa; _jc_save_fromStation=%u5317%u4EAC%2C{fromcity}; _jc_save_toStation=%u4E0A%u6D77%2C{tocity}; current_captcha_type=C; _jc_save_fromDate={time}; _jc_save_toDate={time}',
+'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36 Edg/91.0.864.41',
+}
+car=requests.get(f'https://kyfw.12306.cn/otn/leftTicket/query?leftTicketDTO.train_date={time}&leftTicketDTO.from_station={fromcity}&leftTicketDTO.to_station={tocity}&purpose_codes=ADULT',headers=hand)
+c=car.json()['data']['result']
+lo=[]
+for i1 in c:
+    we=i1.split('|')
+    lo.append(we[2:12])
+for i in lo:
+    print(f'车辆编号：{i[0]},车次：{i[1]},始发站：{l2[i[2]]},终点站{l2[i[3]]},乘坐站：{l2[i[4]]},目的地：{l2[i[5]]},乘车日期：{time}，进站时间：{i[7]},历时：{i[8]},'
+          f'是否可购：{i[9]}')
